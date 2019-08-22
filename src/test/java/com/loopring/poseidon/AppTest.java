@@ -12,7 +12,8 @@ import java.math.BigInteger;
 class Case {
     String name;
     String expected;
-    BigInteger[] inputs;
+    BigInteger[] numInputs;
+    byte[]  bytesInputs;
 
     static PoseidonHash.PoseidonParamsType params = PoseidonHash.DefaultParams;
     static PoseidonHash poseidon = PoseidonHash.Digest.newInstance(params);
@@ -25,7 +26,13 @@ class Case {
     Case(String name, String expected, BigInteger[] inputs) {
         this.name = name;
         this.expected = expected;
-        this.inputs = inputs;
+        this.numInputs = inputs;
+    }
+
+    Case(String name, String expected, byte[] inputs) {
+        this.name = name;
+        this.expected = expected;
+        this.bytesInputs = inputs;
     }
 
     String testPoseidonHash(BigInteger[] inputs) {
@@ -34,13 +41,19 @@ class Case {
         return byteToHex(poseidon.digest());
     }
 
+    String testPoseidonHash(byte[] inputs) {
+        poseidon.reset();
+        poseidon.add(inputs);
+        return byteToHex(poseidon.digest());
+    }
+
     String[] testChainPoseidonHash(BigInteger[] inputs) {
         poseidon.reset();
         poseidon.add(inputs);
-        BigInteger[] hashs = poseidon.digest(true);
-        String[] chainHash = new String[hashs.length];
-        for (int i = 0; i < hashs.length; i++) {
-            chainHash[i] = hashs[i].toString(10);
+        BigInteger[] hashes = poseidon.digest(true);
+        String[] chainHash = new String[hashes.length];
+        for (int i = 0; i < hashes.length; i++) {
+            chainHash[i] = hashes[i].toString(10);
         }
         return chainHash;
     }
@@ -91,7 +104,7 @@ public class AppTest
         };
 
         for (Case c : cases) {
-            assertEquals(c.name, c.expected, c.testPoseidonHash(c.inputs));
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.numInputs));
         }
     }
 
@@ -128,7 +141,7 @@ public class AppTest
         };
 
         for (Case c : cases) {
-            assertEquals(c.name, c.expected, c.testPoseidonHash(c.inputs));
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.numInputs));
         }
     }
 
@@ -161,7 +174,7 @@ public class AppTest
         };
 
         for (Case c : cases) {
-            assertEquals(c.name, c.expected, c.testPoseidonHash(c.inputs));
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.numInputs));
         }
     }
 
@@ -203,7 +216,28 @@ public class AppTest
         };
 
         for (Case c : cases) {
-            assertEquals(c.name, c.expected, c.testPoseidonHash(c.inputs));
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.numInputs));
+        }
+    }
+
+    @Test
+    public void checkSignaturePoseidonHash() {
+        PoseidonHash.PoseidonParamsType merklePoseidonParams =
+                PoseidonHash.PoseidonParamsType.newInstance(SNARK_SCALAR_FIELD, 66, 6, 56,
+                        "poseidon", 5, 128);
+        Case.setNewParams(merklePoseidonParams);
+        Case[] cases = new Case[]{
+                new Case("[1]",
+                        "0x0f7868ef0d81ff4b765e1b461c99e83002fb28685bb22af2cf1246bac539c35c",
+                        new BigInteger[]{BigInteger.valueOf(1)}),
+                new Case("[1,3,5,7]",
+                        "0x2655c8923d9d779a54c359c790d42d024cfbba78da4eab9911be9fab03414cc8",
+                        new BigInteger[]{BigInteger.valueOf(1), BigInteger.valueOf(3),
+                                         BigInteger.valueOf(5), BigInteger.valueOf(7)}),
+        };
+
+        for (Case c : cases) {
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.numInputs));
         }
     }
 
@@ -223,7 +257,7 @@ public class AppTest
         boolean pass = false;
         for (Case c : cases) {
             try {
-                c.testPoseidonHash(c.inputs);
+                c.testPoseidonHash(c.numInputs);
                 pass = true;
             } catch (AssertionError e) {
                 assertTrue(true);
@@ -282,6 +316,28 @@ public class AppTest
             for (BigInteger vv : v) {
                 System.out.println(vv.toString(16));
             }
+        }
+    }
+
+    @Test
+    public void checkByteArrayInput() {
+        Case[] cases = new Case[]{
+                new Case("[0xFF]",
+                        "0x268b064dbf1d1bf60799872bcabc9d575c43248322a2e918fb8e64e695c28d54",
+                        new byte[]{-1}),
+                new Case("[0xFFFF]",
+                        "0x13d3713fdfc7df203f3700b0305745e245fb05a251709404de320f4373b0e21e",
+                        new byte[]{-1, -1}),
+                new Case("[0xFFFF07]",
+                        "0x2f4f49b46fc083c45864c289217c977e55565581dafd44ce6c11088850afc729",
+                        new byte[]{-1, -1, 7}),
+                new Case("[0x01020304]",
+                        "0x2bbfe646483dedce96101d71610a6b340b21ea89d70f4b27694b00fbf8d0d73c",
+                        new byte[]{1,2,3,4}),
+        };
+
+        for (Case c : cases) {
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.bytesInputs));
         }
     }
 }
