@@ -13,6 +13,6 @@ public class App
         PoseidonHash.PoseidonParamsType params = PoseidonHash.DefaultParams;
         PoseidonHash.Digest poseidon = PoseidonHash.Digest.newInstance(params);
         poseidon.add(BigInteger.ONE.toByteArray());
-        System.out.println( "Hello World! hash = " + poseidon.digest(true) );
+        System.out.println( "Hello World! poseidon hash [1] = " + poseidon.digest(false)[0].toString(10) );
     }
 }

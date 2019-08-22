@@ -9,11 +9,7 @@
 
 package com.loopring.poseidon;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.BitSet;
-import java.util.List;
 
 import ove.crypto.digest.Blake2b;
 
@@ -110,15 +106,15 @@ public interface PoseidonHash {
             // iacr.org/2019/458 § 3 Cryptanalysis Summary of Starkad and Poseidon Hashes
             // (pg 10)
             // Figure 1
-            System.out.println("(nRoundsF + nRoundsP) = " + (nRoundsF + nRoundsP));
-            System.out.println("Interpolation Attackable Rounds = "
-                    + ((interpolation_attack_ratio * Math.min(n, M)) + Math.log(t) / Math.log(2)));
+//            System.out.println("(nRoundsF + nRoundsP) = " + (nRoundsF + nRoundsP));
+//            System.out.println("Interpolation Attackable Rounds = "
+//                    + ((interpolation_attack_ratio * Math.min(n, M)) + Math.log(t) / Math.log(2)));
             assert ((nRoundsF + nRoundsP) > ((interpolation_attack_ratio * Math.min(n, M)) + Math.log(t) / Math.log(2)));
             // Figure 3
-            System.out.println("grobner_attack_ratio_rounds = " + ((2 + Math.min(M, n)) * grobner_attack_ratio_rounds));
+//            System.out.println("grobner_attack_ratio_rounds = " + ((2 + Math.min(M, n)) * grobner_attack_ratio_rounds));
             assert ((nRoundsF + nRoundsP) > ((2 + Math.min(M, n)) * grobner_attack_ratio_rounds));
             // Figure 4
-            System.out.println("grobner_attack_ratio_sboxes = " + (M * grobner_attack_ratio_sboxes));
+//            System.out.println("grobner_attack_ratio_sboxes = " + (M * grobner_attack_ratio_sboxes));
             assert ((nRoundsF + (t * nRoundsP)) > (M * grobner_attack_ratio_sboxes));
 
             // iacr.org/2019/458 § 4.1 Minimize "Number of S-Boxes"
@@ -140,13 +136,13 @@ public interface PoseidonHash {
 
             // iacr.org/2019/458 § 4.1 6 SNARKs Application via Poseidon-π
             // page 16 formula (8) and (9)
-            int n_constraints = (nRoundsF * t) + nRoundsP;
-            if (e == 5) {
-                n_constraints *= 3;
-            } else if (e == 3) {
-                n_constraints *= 2;
-            }
-            System.out.println("n_constraints = " + n_constraints);
+//            int n_constraints = (nRoundsF * t) + nRoundsP;
+//            if (e == 5) {
+//                n_constraints *= 3;
+//            } else if (e == 3) {
+//                n_constraints *= 2;
+//            }
+//            System.out.println("n_constraints = " + n_constraints);
 
             return new PoseidonParamsType(p, t, nRoundsF, nRoundsP, seed, e, constants_C, constants_M);
         }
@@ -255,10 +251,15 @@ public interface PoseidonHash {
 
         private boolean trace = false;
         private boolean chain = false;
-        private boolean strict_mode = true;
+        private boolean strict = true; // make sure input integer < Fq.
 
-        public PoseidonHash setStrict_mode(boolean strict_mode) {
-            this.strict_mode = strict_mode;
+        public PoseidonHash setStrict(boolean strict_mode) {
+            this.strict = strict_mode;
+            return this;
+        }
+
+        public PoseidonHash setTrace(boolean trace) {
+            this.trace = trace;
             return this;
         }
 
@@ -280,7 +281,7 @@ public interface PoseidonHash {
 
         /** */
         @Override public void add (BigInteger[] inputs) {
-            if (strict_mode && !chain) {
+            if (strict && !chain) {
                 assert (state + inputs.length <= params.t);
                 for(int i = 0; i < inputs.length; i++) {
                     assert (inputs[i].compareTo(BigInteger.ZERO) >= 0 && inputs[i].compareTo(params.p) < 0);
