@@ -11,6 +11,9 @@ public class App
     public static void main( String[] args )
     {
         BigInteger[] inputs = new BigInteger[]{BigInteger.ONE};
-        System.out.println( "Hello World! hash = " + Poseidon.hash(inputs, null, false, false) );
+        PoseidonHash.PoseidonParamsType params = PoseidonHash.DefaultParams;
+        PoseidonHash.Digest poseidon = PoseidonHash.Digest.newInstance(params);
+        poseidon.add(BigInteger.ONE.toByteArray());
+        System.out.println( "Hello World! hash = " + poseidon.digest() );
     }
 }
