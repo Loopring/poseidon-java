@@ -28,9 +28,6 @@ public interface PoseidonHash {
     void add (byte[] input) ;
 
     /** */
-    void add (byte[][] input);
-
-    /** */
     void add (BigInteger[] input);
 
     /** */
@@ -279,14 +276,6 @@ public interface PoseidonHash {
             assert (state < params.t);
             buffer[state] = new BigInteger(1, input).mod(params.p);
             state++;
-        }
-
-        /** */
-        @Override public void add (byte[][] inputs) {
-            assert (state + inputs.length < params.t);
-            for (byte[] input : inputs) {
-                add(input);
-            }
         }
 
         /** */
