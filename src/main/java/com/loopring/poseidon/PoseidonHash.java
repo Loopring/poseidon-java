@@ -47,6 +47,8 @@ public interface PoseidonHash {
 
 
         private final static int byteLength = 32;
+        private final static Blake2b.Param param = new Blake2b.Param().setDigestLength(byteLength);
+        private final static Blake2b blake2b = Blake2b.Digest.newInstance(param);
 
         private PoseidonParamsType(BigInteger p, int t, int nRoundsF, int nRoundsP, String seed, int e,
                                    BigInteger[] constants_C, BigInteger[][] constants_M) {
@@ -63,7 +65,12 @@ public interface PoseidonHash {
             assert byteLength >= p.bitLength() >> 3;
         }
 
-        static public PoseidonParamsType newInstance(BigInteger p, int t, int nRoundsF, int nRoundsP, String seed, int e,
+        static public PoseidonParamsType newInstance(BigInteger p, int t, int nRoundsF, int nRoundsP,
+                                                     String seed, int e, int security_target) {
+            return newInstance(p, t, nRoundsF, nRoundsP, seed, e, null, null, security_target);
+        }
+
+        static PoseidonParamsType newInstance(BigInteger p, int t, int nRoundsF, int nRoundsP, String seed, int e,
                                                      BigInteger[] constants_C, BigInteger[][] constants_M, int security_target) {
             assert (nRoundsF % 2 == 0 && nRoundsF > 0);
             assert (nRoundsP > 0);
@@ -144,7 +151,10 @@ public interface PoseidonHash {
             byte[] src = input.toByteArray();
             byte[] dst = new byte[size];
 
-//        assert (src.length <= size);
+            // Make sure the src is a positive big int.
+            // The 2nd condition is for 0x00FFFF == 255 but 0xFFFF == -1, iff size == 4.
+            // However if every input is in region [0, p-1], there is no such problem.
+            assert (src.length <= size || (src.length == size + 1 && src[0] == 0));
 
             if (mode == "little") {
                 for (int i = size - 1; i >= 0; i--) {
@@ -183,19 +193,16 @@ public interface PoseidonHash {
 
         static BigInteger H(BigInteger input) {
             // input should be positive, otherwise 0xFFFF....FF will be interpreted as -1
+            // if isinstance(arg, int):
+            // arg = arg.to_bytes(32, 'little')
             assert (input.compareTo(BigInteger.ZERO) >= 0);
             byte[] buf = getIntBytes(input, byteLength, "little");
             return H(buf);
         }
 
         static BigInteger H(byte[] input) {
-            // if isinstance(arg, int):
-            // arg = arg.to_bytes(32, 'little')
             // hashed = blake2b(data=arg, digest_size=32).digest()
             // return int.from_bytes(hashed, 'little')
-            Blake2b.Param param = new Blake2b.Param().
-                    setDigestLength(byteLength);
-            final Blake2b blake2b = Blake2b.Digest.newInstance(param);
             blake2b.reset();
             blake2b.update(input);
             byte[] hashBuf = blake2b.digest();
@@ -233,7 +240,6 @@ public interface PoseidonHash {
         }
     }
 
-
     PoseidonParamsType DefaultParams = PoseidonParamsType.newInstance(Field.SNARK_SCALAR_FIELD, 6, 8,
             57, "poseidon", 5, null, null, 126);
 
@@ -245,6 +251,12 @@ public interface PoseidonHash {
 
         private boolean trace = false;
         private boolean chain = false;
+        private boolean strict_mode = true;
+
+        public PoseidonHash setStrict_mode(boolean strict_mode) {
+            this.strict_mode = strict_mode;
+            return this;
+        }
 
         private Digest (final PoseidonParamsType params) {
             this.params = params;
@@ -258,7 +270,7 @@ public interface PoseidonHash {
         /** */
         @Override public void add (byte[] input) {
             assert (state < params.t);
-            buffer[state] = new BigInteger(1, input);
+            buffer[state] = new BigInteger(1, input).mod(params.p);
             state++;
         }
 
@@ -273,8 +285,16 @@ public interface PoseidonHash {
         /** */
         @Override public void add (BigInteger[] inputs) {
             assert (state + inputs.length < params.t);
-            System.arraycopy(inputs, 0, buffer, state, inputs.length);
-            state += inputs.length;
+            if (strict_mode) {
+                for(int i = 0; i < inputs.length; i++) {
+                    assert (inputs[i].compareTo(BigInteger.ZERO) >= 0 && inputs[i].compareTo(params.p) < 0);
+                    buffer[state] = inputs[i].mod(params.p);
+                    state++;
+                }
+            } else {
+                System.arraycopy(inputs, 0, buffer, state, inputs.length);
+                state += inputs.length;
+            }
         }
 
         /** */
@@ -290,7 +310,6 @@ public interface PoseidonHash {
                 buffer[i] = BigInteger.ZERO;
             }
         }
-
 
         // TODO: chain return value.
         private BigInteger hash(BigInteger[] inputs, PoseidonParamsType params, Boolean chained, Boolean trace) {

@@ -25,6 +25,13 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>ove.blake2b</groupId>
+      <artifactId>alpha</artifactId>
+      <version>0</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/ove.blake2b-alpha.0.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <build>
