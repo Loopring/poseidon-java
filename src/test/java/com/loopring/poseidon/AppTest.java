@@ -3,12 +3,9 @@ package com.loopring.poseidon;
 import static com.loopring.poseidon.PoseidonHash.Field.SNARK_SCALAR_FIELD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import junit.framework.AssertionFailedError;
-import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.math.BigInteger;
 
@@ -37,6 +34,17 @@ class Case {
         return byteToHex(poseidon.digest());
     }
 
+    String[] testChainPoseidonHash(BigInteger[] inputs) {
+        poseidon.reset();
+        poseidon.add(inputs);
+        BigInteger[] hashs = poseidon.digest(true);
+        String[] chainHash = new String[hashs.length];
+        for (int i = 0; i < hashs.length; i++) {
+            chainHash[i] = hashs[i].toString(10);
+        }
+        return chainHash;
+    }
+
     private String byteToHex(byte[] bytes) {
         String hexStr = "0x";
         for (byte b : bytes) {
@@ -54,12 +62,6 @@ public class AppTest
     /**
      * Rigorous Test :-)
      */
-    @Test
-    public void shouldAnswerWithTrue()
-    {
-        assertTrue( true );
-    }
-
     @Test
     public void DefaultParamTest()
     {
@@ -164,13 +166,55 @@ public class AppTest
     }
 
     @Test
+    public void checkChainedPoseidon() {
+        PoseidonHash.PoseidonParamsType merklePoseidonParams =
+                PoseidonHash.PoseidonParamsType.newInstance(SNARK_SCALAR_FIELD, 5, 6, 52,
+                        "poseidon", 5, 128);
+        Case.setNewParams(merklePoseidonParams);
+        BigInteger[] inputs = new BigInteger[]{BigInteger.valueOf(0), BigInteger.valueOf(1),
+                                BigInteger.valueOf(2), BigInteger.valueOf(3),  BigInteger.valueOf(4)};
+        Case c = new Case("Chain hash [0, 1, 2, 3, 4]", "", inputs);
+
+
+        assertEquals(new String[] {
+                "15864913677115162934064607149194869253350241780874175050452413048185040098763",
+                "7319943059005658379315734218739496583847470886995543107485878740768447351279",
+                "15850557525889711069621591486692886703107356190007608399927534033240030180242",
+                "20065657824293123484454605177858418945231474745592934103976154543264266512613",
+                "15092432367470046186770254078717787125796199987224954741108014626080561676082",
+                }, c.testChainPoseidonHash(inputs));
+    }
+
+    @Test
+    public void checkMerklePoseidonHashBufferLength() {
+        PoseidonHash.PoseidonParamsType merklePoseidonParams =
+                PoseidonHash.PoseidonParamsType.newInstance(SNARK_SCALAR_FIELD, 5, 6, 52,
+                        "poseidon", 5, 128);
+        Case.setNewParams(merklePoseidonParams);
+        Case[] cases = new Case[]{
+                // 31 bytes
+                new Case("0",
+                        "0x7e57111afc5df6bfabb786d9fb9790c1791546c1d3186e0712ffae816ca9c7",
+                        new BigInteger[]{BigInteger.valueOf(980)}),
+                // 31 byte but 1 sign byte
+                new Case("0",
+                        "0x00f16533bed797a7d1ceda6ce71813e93e7dd0de7747a2cbe0d4cdd36125d524",
+                        new BigInteger[]{BigInteger.valueOf(984)}),
+        };
+
+        for (Case c : cases) {
+            assertEquals(c.name, c.expected, c.testPoseidonHash(c.inputs));
+        }
+    }
+
+    @Test
     public void checkFailureBoundary() {
         Case.setNewParams(PoseidonHash.DefaultParams);
         Case[] cases = new Case[]{
-//                new Case("[0, 1, 2, 3, 4, 5] out of boundary",
-//                        "",
-//                        new BigInteger[]{BigInteger.valueOf(0), BigInteger.valueOf(1), BigInteger.valueOf(2),
-//                                BigInteger.valueOf(3), BigInteger.valueOf(4), BigInteger.valueOf(5)}),
+                new Case("[0, 1, 2, 3, 4, 5] out of boundary",
+                        "",
+                        new BigInteger[]{BigInteger.valueOf(0), BigInteger.valueOf(1), BigInteger.valueOf(2),
+                                BigInteger.valueOf(3), BigInteger.valueOf(4), BigInteger.valueOf(5)}),
                 new Case("[Fq + 1] out of boundary",
                         "",
                         new BigInteger[]{PoseidonHash.DefaultParams.p.add(BigInteger.ONE)}),
@@ -186,7 +230,6 @@ public class AppTest
             }
             assertEquals("Expected an AssertionError to be thrown in " + c.name, false, pass);
         }
-
     }
 
     @Test
@@ -222,7 +265,7 @@ public class AppTest
                 inputH.mod(PoseidonHash.DefaultParams.p));
     }
 
-    @Test
+    @Ignore
     public void checkDefaultPoseidonContants() {
         PoseidonHash.PoseidonParamsType params = PoseidonHash.DefaultParams;
         BigInteger[] c = params.poseidon_constants(params.p, params.seed+"_constants", params.nRoundsF + params.nRoundsP);
@@ -231,7 +274,7 @@ public class AppTest
         }
     }
 
-    @Test
+    @Ignore
     public void checkDefaultPoseidonMatrix() {
         PoseidonHash.PoseidonParamsType params = PoseidonHash.DefaultParams;
         BigInteger[][] c = params.poseidon_matrix(params.p, params.seed+"_matrix_0000", params.t);

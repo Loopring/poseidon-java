@@ -9,7 +9,11 @@
 
 package com.loopring.poseidon;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.BitSet;
+import java.util.List;
 
 import ove.crypto.digest.Blake2b;
 
@@ -31,6 +35,9 @@ public interface PoseidonHash {
 
     /** */
     byte[] digest () ;
+
+    /** */
+    BigInteger[] digest (boolean chain) ;
 
     /** */
     void reset () ;
@@ -284,14 +291,15 @@ public interface PoseidonHash {
 
         /** */
         @Override public void add (BigInteger[] inputs) {
-            assert (state + inputs.length < params.t);
-            if (strict_mode) {
+            if (strict_mode && !chain) {
+                assert (state + inputs.length <= params.t);
                 for(int i = 0; i < inputs.length; i++) {
                     assert (inputs[i].compareTo(BigInteger.ZERO) >= 0 && inputs[i].compareTo(params.p) < 0);
                     buffer[state] = inputs[i].mod(params.p);
                     state++;
                 }
             } else {
+                assert (state + inputs.length < params.t);
                 System.arraycopy(inputs, 0, buffer, state, inputs.length);
                 state += inputs.length;
             }
@@ -299,7 +307,18 @@ public interface PoseidonHash {
 
         /** */
         @Override public byte[] digest () {
+            chain = false;
             return hash(buffer, params, trace)[0].toByteArray();
+        }
+
+        /** */
+        @Override public BigInteger[] digest (boolean chain) {
+            this.chain = chain;
+            if (!chain) {
+                return new BigInteger[]{hash(buffer, params, trace)[0]};
+            } else {
+                return hash(buffer, params, trace);
+            }
         }
 
         /** */
@@ -311,18 +330,13 @@ public interface PoseidonHash {
             }
         }
 
-        // TODO: chain return value.
-        private BigInteger hash(BigInteger[] inputs, PoseidonParamsType params, Boolean chained, Boolean trace) {
-            return hash(inputs, params, trace)[0];
-        }
-
         private BigInteger[] hash(BigInteger[] inputs, PoseidonParamsType params, Boolean trace) {
             if (params == null) {
                 params = DefaultParams;
             }
 
             assert (inputs != null && inputs.length != 0);
-            assert (this.state < params.t);
+            assert (this.state < params.t || (chain && this.state == params.t));
 
             BigInteger[] states = new BigInteger[params.t];
             System.arraycopy(inputs, 0, states, 0, inputs.length);
