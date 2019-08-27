@@ -70,7 +70,7 @@ class Case {
 /**
  * Unit test for simple App.
  */
-public class AppTest 
+public class PoseidonHashTest
 {
     /**
      * Rigorous Test :-)

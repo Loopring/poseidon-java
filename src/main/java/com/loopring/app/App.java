@@ -1,4 +1,6 @@
-package com.loopring.poseidon;
+package com.loopring.app;
+
+import com.loopring.poseidon.PoseidonHash;
 
 /**
  * Hello world!
