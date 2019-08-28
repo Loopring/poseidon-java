@@ -52,7 +52,9 @@ public class BigIntLittleEndianEncoding {
      *  @throws IllegalStateException if field not set
      */
     public byte[] encode(BigInteger x) {
-        byte[] in = x.toByteArray();
+        assert (!isNegative(x));
+
+        byte[] in = x.mod(p).toByteArray();
         byte[] out = new byte[byteLength];
         for (int i = 0; i < in.length; i++) {
             out[i] = in[in.length-1-i];
@@ -73,7 +75,7 @@ public class BigIntLittleEndianEncoding {
      *  @throws IllegalArgumentException if encoding is invalid
      */
     public BigInteger decode(byte[] in) {
-        if (in.length != p.bitLength()/8)
+        if (in.length > byteLength)
             throw new IllegalArgumentException("Not a valid encoding");
         return toBigInteger(in).mod(p);
     }

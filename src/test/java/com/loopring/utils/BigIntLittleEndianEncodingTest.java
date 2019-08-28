@@ -2,6 +2,7 @@ package com.loopring.utils;
 
 import com.loopring.eddsa.BabyJubjubCurve;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -14,13 +15,25 @@ public class BigIntLittleEndianEncodingTest {
         byte[] buf = enc.encode(BigInteger.ZERO);
         assert (buf.length == enc.byteLength());
         assert (buf.length == BabyJubjubCurve.FIELD_SIZE);
-        enc.decode(buf).equals(BigInteger.ZERO);
+        assertTrue(enc.decode(buf).equals(BigInteger.ZERO));
 
-        buf = enc.encode(BigInteger.ZERO.subtract(BigInteger.ONE));
+        buf = enc.encode(BigInteger.ONE);
+        byte[] refBuf = new byte[]{ 1, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,};
         assert (buf.length == enc.byteLength());
         assert (buf.length == BabyJubjubCurve.FIELD_SIZE);
-        enc.decode(buf).equals(BigInteger.ZERO.subtract(BigInteger.ONE));
+        assertArrayEquals (refBuf, buf);
+        assertEquals(enc.decode(buf), BigInteger.ONE);
 
-        Random r = new Random();
+        for (int i = 0; i < 100; i++) {
+            Random r = new Random();
+            BigInteger num = new BigInteger(BabyJubjubCurve.FIELD_SIZE, r);
+            buf = enc.encode(num);
+            assert (buf.length == enc.byteLength());
+            assert (buf.length == BabyJubjubCurve.FIELD_SIZE);
+            assertEquals(enc.decode(buf), num);
+        }
     }
 }

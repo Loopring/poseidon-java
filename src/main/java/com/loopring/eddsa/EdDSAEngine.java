@@ -9,7 +9,7 @@ import java.security.SecureRandom;
 
 public class EdDSAEngine {
     boolean initialized;
-    final int DEFAULT_KEYSIZE = 256;
+    final int DEFAULT_KEY_BITLENGTH = BabyJubjubCurve.BIT_FIELD_SIZE;
     private int keySize;
     private SecureRandom random;
     private BigIntLittleEndianEncoding bigIntEncoder;
@@ -17,6 +17,7 @@ public class EdDSAEngine {
     private PoseidonHash poseidonHashEngine;
 
     public EdDSAEngine(){
+        initialize(DEFAULT_KEY_BITLENGTH, new SecureRandom());
     }
 
     public void initialize(int keySize, SecureRandom r) {
@@ -33,15 +34,17 @@ public class EdDSAEngine {
 
     public EdDSAKeyPair generateKeyPair() {
         if (!initialized)
-            initialize(DEFAULT_KEYSIZE, new SecureRandom());
+            initialize(DEFAULT_KEY_BITLENGTH, new SecureRandom());
 
-        byte[] seed = new byte[DEFAULT_KEYSIZE/8];
+        byte[] seed = new byte[DEFAULT_KEY_BITLENGTH /8];
         random.nextBytes(seed);
 
         BigInteger secretKey = new BigInteger(1, seed).mod(BabyJubjubCurve.subOrder);
         Point publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey);
 
-        return new EdDSAKeyPair(publicKey, secretKey.toByteArray());
+        return new EdDSAKeyPair(bigIntEncoder.encode(publicKey.x),
+                                bigIntEncoder.encode(publicKey.y),
+                                bigIntEncoder.encode(secretKey));
     }
 
     public byte[] sign(byte[] keyBytes, byte[] msg) {
@@ -71,13 +74,14 @@ public class EdDSAEngine {
 //                s: S.toString()
 //  };
 //        return signature;
-        BigInteger key = new BigInteger(1, keyBytes);
-        byte[] prv = bigIntEncoder.encode(key);
+        assert (keyBytes.length == 32);
+        byte[] prv = keyBytes;
+        BigInteger key = bigIntEncoder.decode(keyBytes);
 
         byte[] h1 = blake512HashEngine.digest(prv);
         byte[] msgBuffer = new byte[64];
 
-        assert (h1.length == 32);
+        assert (h1.length == 64);
         System.arraycopy(h1, 32, msgBuffer, 0, 32);
 
         assert (msg.length == 32);
@@ -85,7 +89,9 @@ public class EdDSAEngine {
 
         blake512HashEngine.reset();
         byte[] rBuff = blake512HashEngine.digest(msgBuffer);
-        BigInteger r = bigIntEncoder.decode(rBuff).mod(BabyJubjubCurve.subOrder);
+
+        FieldElement fieldOp = new FieldElement(BabyJubjubCurve.p);
+        BigInteger r = fieldOp.fromLeBuf(rBuff);
 
         Point A = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, key);
         Point R8 = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, r);
@@ -134,8 +140,8 @@ public class EdDSAEngine {
         EdDSASignature sign = new EdDSASignature(signature);
 
         Point A = new Point(pubKey);
-        Point R = new Point(sign.rX, sign.rY);
-        BigInteger S = new BigInteger(sign.signature);
+        Point R = sign.getPointR();
+        BigInteger S = sign.getS();
 
         if (!BabyJubjubCurve.inCurve(R)) return false;
         if (!BabyJubjubCurve.inCurve(A)) return false;

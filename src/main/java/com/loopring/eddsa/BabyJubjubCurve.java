@@ -1,5 +1,7 @@
 package com.loopring.eddsa;
 
+import com.loopring.utils.BigIntLittleEndianEncoding;
+
 import java.math.BigInteger;
 
 final class Point {
@@ -18,19 +20,22 @@ final class Point {
     }
 
     public Point(byte[] buffer) {
+        BigIntLittleEndianEncoding bigIntEnc = BigIntLittleEndianEncoding.newInstance();
         byte[] xBuf = new byte[BabyJubjubCurve.FIELD_SIZE];
         byte[] yBuf = new byte[BabyJubjubCurve.FIELD_SIZE];
 
         assert (buffer.length == 2 * BabyJubjubCurve.FIELD_SIZE);
         System.arraycopy(buffer, 0, xBuf, 0, 32);
         System.arraycopy(buffer, 32, yBuf, 0, 32);
-        this.x = new BigInteger(1, xBuf);
-        this.y = new BigInteger(1, yBuf);
+
+        this.x = bigIntEnc.decode(xBuf);
+        this.y = bigIntEnc.decode(yBuf);
     }
 
     public Point(byte[] x, byte[] y) {
-        this.x = new BigInteger(1, x);
-        this.y = new BigInteger(1, y);
+        BigIntLittleEndianEncoding bigIntEnc = BigIntLittleEndianEncoding.newInstance();
+        this.x = bigIntEnc.decode(x);
+        this.y = bigIntEnc.decode(y);
     }
 }
 

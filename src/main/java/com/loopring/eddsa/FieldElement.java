@@ -25,4 +25,15 @@ public class FieldElement {
     public BigInteger inv(BigInteger a) {
         return a.modInverse(p);
     }
+
+    public BigInteger fromLeBuf(byte[] leBuf) {
+        for(int i=0; i<leBuf.length/2; i++){
+            byte temp = leBuf[i];
+            leBuf[i] = leBuf[leBuf.length -i -1];
+            leBuf[leBuf.length -i -1] = temp;
+        }
+
+        return new BigInteger(1, leBuf).mod(p);
+    }
+
 }
