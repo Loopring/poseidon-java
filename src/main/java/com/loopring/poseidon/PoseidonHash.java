@@ -16,7 +16,7 @@ import ove.crypto.digest.Blake2b;
 public interface PoseidonHash {
 
     class Field {
-        // Fq of BN128
+        // Fr of BN128
         public static final BigInteger SNARK_SCALAR_FIELD = new BigInteger("21888242871839275222246405745257275088548364400416034343698204186575808495617");
     }
 

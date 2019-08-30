@@ -1,39 +1,63 @@
 package com.loopring.eddsa;
 
+import com.loopring.utils.BigIntLittleEndianEncoding;
+
 import java.math.BigInteger;
 
-public class FieldElement {
+public class FieldElement extends BigIntLittleEndianEncoding {
 
-    BigInteger p;
+    BigInteger fq; // field prime number
 
-    public FieldElement(BigInteger p) {
-        this.p = p;
+    BigInteger v;  // value in this field
+
+    public FieldElement(BigInteger prime, BigInteger v) {
+        super(BabyJubjubCurve.BIT_FIELD_SIZE);
+        this.fq = prime;
+        this.v = v.mod(prime);
     }
 
-    public BigInteger add(BigInteger a, BigInteger b) {
-        return a.add(b).mod(p);
+    public FieldElement(BigInteger prime) {
+        this(prime, BigInteger.ZERO);
     }
 
-    public BigInteger sub(BigInteger a, BigInteger b) {
-        return a.subtract(a).mod(p);
+    public FieldElement add(FieldElement b) {
+        assert (fq == b.fq);
+        return new FieldElement(fq, v.add(b.v).mod(fq));
     }
 
-    public BigInteger mul(BigInteger a, BigInteger b) {
-        return a.multiply(b).mod(p);
+    public FieldElement sub(FieldElement b) {
+        assert (fq == b.fq);
+        return new FieldElement(fq, v.subtract(b.v).mod(fq));
     }
 
-    public BigInteger inv(BigInteger a) {
-        return a.modInverse(p);
+    public FieldElement mul(FieldElement b) {
+        assert (fq == b.fq);
+        return new FieldElement(fq, v.multiply(b.v).mod(fq));
     }
 
-    public BigInteger fromLeBuf(byte[] leBuf) {
-        for(int i=0; i<leBuf.length/2; i++){
-            byte temp = leBuf[i];
-            leBuf[i] = leBuf[leBuf.length -i -1];
-            leBuf[leBuf.length -i -1] = temp;
-        }
-
-        return new BigInteger(1, leBuf).mod(p);
+    public FieldElement square() {
+        return new FieldElement(fq, v.pow(2).mod(fq));
     }
 
+    public FieldElement inv()
+    {
+        return new FieldElement(fq, v.modInverse(fq));
+    }
+
+    public FieldElement fromLeBuf(byte[] leBuf) {
+        BigInteger bi = this.decode(leBuf);
+        return new FieldElement(fq, bi);
+    }
+
+    public byte[] toLeBuf() {
+        return this.encode(v);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (!(obj instanceof FieldElement)) return false;
+        FieldElement e = (FieldElement)obj;
+        return fq.compareTo(e.fq) == 0 && v.compareTo(e.v) == 0;
+    }
 }

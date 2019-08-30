@@ -1,16 +1,11 @@
 package com.loopring.eddsa;
 
-import com.loopring.utils.BigIntLittleEndianEncoding;
-
 import java.math.BigInteger;
 
 public class EdDSASignature {
-    byte[] signature;
 
     private Point rPoint;
-    private BigInteger nSignature;
-    BigIntLittleEndianEncoding enc;
-
+    private FieldElement nSignature;
 
     public EdDSASignature(byte[] signature) {
         assert (signature.length == BabyJubjubCurve.FIELD_SIZE * 3);
@@ -21,26 +16,21 @@ public class EdDSASignature {
         System.arraycopy(signature, 0, pointBuf, 0, pointBuf.length);
         System.arraycopy(signature, pointBuf.length, signBuf, 0, signBuf.length);
 
-        if (enc == null) {
-            enc = BigIntLittleEndianEncoding.newInstance();
-        }
         rPoint = new Point(pointBuf);
-        nSignature = enc.decode(signBuf);
+        nSignature = new FieldElement(BabyJubjubCurve.subOrder, BigInteger.ZERO).fromLeBuf(signBuf);
     }
 
-    public EdDSASignature(Point R8, BigInteger S) {
+    public EdDSASignature(Point R8, FieldElement S) {
         rPoint = R8;
         nSignature = S;
     }
 
     public byte[] toByteArray() {
-        byte[] signature = new byte[96];
-        if (enc == null) {
-            enc = BigIntLittleEndianEncoding.newInstance();
-        }
-        System.arraycopy(enc.encode(rPoint.x), 0, signature, 0, 32);
-        System.arraycopy(enc.encode(rPoint.y), 0, signature, 32, 32);
-        System.arraycopy(enc.encode(nSignature), 0, signature, 64, 32);
+        byte[] signature = new byte[BabyJubjubCurve.FIELD_SIZE*3];
+
+        System.arraycopy(rPoint.x.toLeBuf(), 0, signature, 0, 32);
+        System.arraycopy(rPoint.y.toLeBuf(), 0, signature, 32, 32);
+        System.arraycopy(nSignature.toLeBuf(), 0, signature, 64, 32);
         return signature;
     }
 
@@ -48,7 +38,7 @@ public class EdDSASignature {
         return rPoint;
     }
 
-    public BigInteger getS() {
+    public FieldElement getS() {
         return nSignature;
     }
 }
