@@ -26,7 +26,7 @@ public class BigIntLittleEndianEncoding {
         return this;
     }
 
-    protected byte[] encode(BigInteger x) {
+    public byte[] encode(BigInteger x) {
         assert (!isNegative(x));
 
         byte[] in = x.toByteArray();
@@ -40,7 +40,7 @@ public class BigIntLittleEndianEncoding {
         return out;
     }
 
-    protected BigInteger decode(byte[] in) {
+    public BigInteger decode(byte[] in) {
         return toBigInteger(in);
     }
 
