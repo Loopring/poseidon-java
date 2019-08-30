@@ -21,7 +21,7 @@ public interface PoseidonHash {
     }
 
     /** */
-    void add (byte[] input) ;
+    void add (BigInteger input) ;
 
     /** */
     void add (BigInteger[] input);
@@ -273,9 +273,8 @@ public interface PoseidonHash {
         }
 
         /** */
-        @Override public void add (byte[] input) {
+        @Override public void add (BigInteger num) {
             assert (state < params.t);
-            BigInteger num = new BigInteger(1, input).mod(params.p);
             if (strict) {
                 assert (num.compareTo(BigInteger.ZERO) > 0 && num.compareTo(params.p) < 0);
             }

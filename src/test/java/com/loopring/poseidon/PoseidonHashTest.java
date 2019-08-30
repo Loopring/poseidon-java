@@ -35,13 +35,13 @@ class Case {
         this.bytesInputs = inputs;
     }
 
-    String testPoseidonHash(BigInteger[] inputs) {
+    String testPoseidonHash(BigInteger inputs) {
         poseidon.reset();
         poseidon.add(inputs);
         return byteToHex(poseidon.digest());
     }
 
-    String testPoseidonHash(byte[] inputs) {
+    String testPoseidonHash(BigInteger[] inputs) {
         poseidon.reset();
         poseidon.add(inputs);
         return byteToHex(poseidon.digest());
@@ -337,7 +337,7 @@ public class PoseidonHashTest
         };
 
         for (Case c : cases) {
-            assertEquals(c.name, c.expected, c.testPoseidonHash(c.bytesInputs));
+            assertEquals(c.name, c.expected, c.testPoseidonHash(new BigInteger(1, c.bytesInputs)));
         }
     }
 }

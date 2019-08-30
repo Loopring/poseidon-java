@@ -2,6 +2,8 @@ package com.loopring.app;
 
 import com.loopring.poseidon.PoseidonHash;
 
+import java.math.BigInteger;
+
 /**
  * Hello world!
  *
@@ -16,7 +18,7 @@ public class App
         if (args.length > 0) {
             bytes = args[0].getBytes();
         }
-        poseidon.add(bytes);
+        poseidon.add(new BigInteger(1, bytes));
         System.out.println( "default poseidon hash of <" + new String(bytes) + "> = 0x" + poseidon.digest(false)[0].toString(16) );
     }
 }

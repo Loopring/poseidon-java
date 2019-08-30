@@ -65,11 +65,11 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         Point A = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, key.v);
         Point R8 = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, r.v);
 
-        poseidonHashEngine.add(R8.x.v.toByteArray());
-        poseidonHashEngine.add(R8.y.v.toByteArray());
-        poseidonHashEngine.add(A.x.v.toByteArray());
-        poseidonHashEngine.add(A.y.v.toByteArray());
-        poseidonHashEngine.add(decode(msg).toByteArray());
+        poseidonHashEngine.add(R8.x.v);
+        poseidonHashEngine.add(R8.y.v);
+        poseidonHashEngine.add(A.x.v);
+        poseidonHashEngine.add(A.y.v);
+        poseidonHashEngine.add(decode(msg));
 
         byte[] hm = poseidonHashEngine.digest();
         FieldElement hmInt = new FieldElement(BabyJubjubCurve.subOrder, new BigInteger(1, hm));
@@ -110,11 +110,11 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         if (S.v.compareTo(BabyJubjubCurve.subOrder) >= 0) return false;
 
         poseidonHashEngine.reset();
-        poseidonHashEngine.add(R.x.v.toByteArray());
-        poseidonHashEngine.add(R.y.v.toByteArray());
-        poseidonHashEngine.add(A.x.v.toByteArray());
-        poseidonHashEngine.add(A.y.v.toByteArray());
-        poseidonHashEngine.add(decode(msg).toByteArray());
+        poseidonHashEngine.add(R.x.v);
+        poseidonHashEngine.add(R.y.v);
+        poseidonHashEngine.add(A.x.v);
+        poseidonHashEngine.add(A.y.v);
+        poseidonHashEngine.add(decode(msg));
         byte[] hm = poseidonHashEngine.digest();
         BigInteger hmInt = new BigInteger(1, hm);
 
