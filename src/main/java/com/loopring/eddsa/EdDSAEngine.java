@@ -39,7 +39,7 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         random.nextBytes(seed);
 
         FieldElement secretKey = new FieldElement(BabyJubjubCurve.subOrder, new BigInteger(1, seed));
-        Point publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey.v);
+        EddsaPoint publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey.v);
 
         return new EdDSAKeyPair(publicKey.x.toLeBuf(),
                                 publicKey.y.toLeBuf(),
@@ -62,8 +62,8 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
 
         FieldElement r = new FieldElement(BabyJubjubCurve.subOrder).fromLeBuf(rBuff);
         FieldElement key = new FieldElement(BabyJubjubCurve.subOrder).fromLeBuf(keyBytes);
-        Point A = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, key.v);
-        Point R8 = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, r.v);
+        EddsaPoint A = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, key.v);
+        EddsaPoint R8 = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, r.v);
 
         poseidonHashEngine.add(R8.x.v);
         poseidonHashEngine.add(R8.y.v);
@@ -88,12 +88,12 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         assert (signature.length == 96);
 
         EdDSASignature sign = new EdDSASignature(signature);
-        Point A = new Point(pubKey);
+        EddsaPoint A = new EddsaPoint(pubKey);
 
         return verify(msg, sign, A);
     }
 
-    public boolean verify(byte[] msg, byte[] signature, Point pubKey) {
+    public boolean verify(byte[] msg, byte[] signature, EddsaPoint pubKey) {
         assert (msg.length == 32);
         assert (signature.length == 96);
 
@@ -101,8 +101,8 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         return verify(msg, sign, pubKey);
     }
 
-    private boolean verify(byte[] msg, EdDSASignature sign, Point A) {
-        Point R = sign.getPointR();
+    private boolean verify(byte[] msg, EdDSASignature sign, EddsaPoint A) {
+        EddsaPoint R = sign.getPointR();
         FieldElement S = sign.getS();
 
         if (!BabyJubjubCurve.inCurve(R)) return false;
@@ -118,8 +118,8 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
         byte[] hm = poseidonHashEngine.digest();
         BigInteger hmInt = new BigInteger(1, hm);
 
-        Point lPoint = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, S.v);
-        Point rPoint = BabyJubjubCurve.mulPointEscalar(A, hmInt);
+        EddsaPoint lPoint = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, S.v);
+        EddsaPoint rPoint = BabyJubjubCurve.mulPointEscalar(A, hmInt);
         rPoint = BabyJubjubCurve.addPoint(R, rPoint);
 
         return lPoint.x.equals(rPoint.x) && lPoint.y.equals(rPoint.y);

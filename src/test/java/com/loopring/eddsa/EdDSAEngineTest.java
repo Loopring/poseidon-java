@@ -36,7 +36,7 @@ public class EdDSAEngineTest {
         FieldElement pkY = new FieldElement(BabyJubjubCurve.p,
                                             new BigInteger("10862070804333336766833470090031140186909883561173798338300378814650286539312"));
 
-        assertTrue(BabyJubjubCurve.inCurve(new Point(pkX, pkY)));
+        assertTrue(BabyJubjubCurve.inCurve(new EddsaPoint(pkX, pkY)));
 
         EdDSAEngine engine = new EdDSAEngine();
         byte[] msg = new byte[]{1, 0, 0, 0, 0, 0, 0, 0,
@@ -57,9 +57,9 @@ public class EdDSAEngineTest {
         FieldElement sign = new FieldElement(BabyJubjubCurve.subOrder,
                 new BigInteger("2091871811328635289840733479843828481994307293349704568621677507103143560153"));
 
-        EdDSASignature signature = new EdDSASignature(new Point(Rx, Ry), sign);
+        EdDSASignature signature = new EdDSASignature(new EddsaPoint(Rx, Ry), sign);
 
-        assertTrue(engine.verify(msg, signature.toByteArray(), new Point(pkX, pkY)));
+        assertTrue(engine.verify(msg, signature.toByteArray(), new EddsaPoint(pkX, pkY)));
     }
 
     class JsCrossCheckCase {
@@ -92,10 +92,10 @@ public class EdDSAEngineTest {
             FieldElement pkX = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkX));
             FieldElement pkY = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkY));
 
-            EdDSASignature signature = new EdDSASignature(new Point(Rx, Ry), sign);
+            EdDSASignature signature = new EdDSASignature(new EddsaPoint(Rx, Ry), sign);
 
             BigInteger msgInt = new BigInteger(c.msg);
-            assertTrue("Test " + i + " Failed", engine.verify(engine.encode(msgInt), signature.toByteArray(), new Point(pkX, pkY)));
+            assertTrue("Test " + i + " Failed", engine.verify(engine.encode(msgInt), signature.toByteArray(), new EddsaPoint(pkX, pkY)));
             i++;
         }
     }

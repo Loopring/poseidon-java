@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class EdDSASignature {
 
-    private Point rPoint;
+    private EddsaPoint rPoint;
     private FieldElement nSignature;
 
     public EdDSASignature(byte[] signature) {
@@ -16,11 +16,11 @@ public class EdDSASignature {
         System.arraycopy(signature, 0, pointBuf, 0, pointBuf.length);
         System.arraycopy(signature, pointBuf.length, signBuf, 0, signBuf.length);
 
-        rPoint = new Point(pointBuf);
+        rPoint = new EddsaPoint(pointBuf);
         nSignature = new FieldElement(BabyJubjubCurve.subOrder, BigInteger.ZERO).fromLeBuf(signBuf);
     }
 
-    public EdDSASignature(Point R8, FieldElement S) {
+    public EdDSASignature(EddsaPoint R8, FieldElement S) {
         rPoint = R8;
         nSignature = S;
     }
@@ -34,7 +34,7 @@ public class EdDSASignature {
         return signature;
     }
 
-    public Point getPointR() {
+    public EddsaPoint getPointR() {
         return rPoint;
     }
 

@@ -12,6 +12,6 @@ public class EdDSAKeyPairTest {
         assertEquals(BabyJubjubCurve.FIELD_SIZE, keyPair.publicKeyX.length);
         assertEquals(BabyJubjubCurve.FIELD_SIZE, keyPair.publicKeyY.length);
         assertEquals(BabyJubjubCurve.FIELD_SIZE, keyPair.secretKey.length);
-        assertTrue(BabyJubjubCurve.inCurve(new Point(keyPair.publicKeyX, keyPair.publicKeyY)));
+        assertTrue(BabyJubjubCurve.inCurve(new EddsaPoint(keyPair.publicKeyX, keyPair.publicKeyY)));
     }
 }
