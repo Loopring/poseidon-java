@@ -2,38 +2,6 @@ package com.loopring.eddsa;
 
 import java.math.BigInteger;
 
-final class Point {
-
-    public FieldElement x;
-    public FieldElement y;
-
-    public Point(BigInteger x, BigInteger y) {
-        this.x = new FieldElement(BabyJubjubCurve.p, x);
-        this.y = new FieldElement(BabyJubjubCurve.p, y);
-    }
-
-    public Point(FieldElement x, FieldElement y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public Point(byte[] buffer) {
-        byte[] xBuf = new byte[BabyJubjubCurve.FIELD_SIZE];
-        byte[] yBuf = new byte[BabyJubjubCurve.FIELD_SIZE];
-
-        assert (buffer.length == 2 * BabyJubjubCurve.FIELD_SIZE);
-        System.arraycopy(buffer, 0, xBuf, 0, 32);
-        System.arraycopy(buffer, 32, yBuf, 0, 32);
-
-        this.x = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(xBuf);
-        this.y = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(yBuf);
-    }
-
-    public Point(byte[] x, byte[] y) {
-        this.x = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(x);
-        this.y = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(y);
-    }
-}
 
 public class BabyJubjubCurve {
 
@@ -43,7 +11,7 @@ public class BabyJubjubCurve {
 
     public static BigInteger p = new BigInteger("21888242871839275222246405745257275088548364400416034343698204186575808495617");
 
-    public static Point base8 = new Point(
+    public static EddsaPoint base8 = new EddsaPoint(
             new FieldElement(p, new BigInteger("16540640123574156134436876038791482806971768689494387082833631921987005038935")),
             new FieldElement(p, new BigInteger("20819045374670962167435360035096875258406992893633759881276124905556507972311")));
 
@@ -55,9 +23,9 @@ public class BabyJubjubCurve {
 
     static FieldElement d = new FieldElement(p, new BigInteger("168696"));
 
-    static Point mulPointEscalar(Point pointP, BigInteger e) {
-        Point res = new Point(BigInteger.ZERO, BigInteger.ONE);
-        Point exp = pointP;
+    static EddsaPoint mulPointEscalar(EddsaPoint pointP, BigInteger e) {
+        EddsaPoint res = new EddsaPoint(BigInteger.ZERO, BigInteger.ONE);
+        EddsaPoint exp = pointP;
         BigInteger rem = e;
 
         while (rem.compareTo(BigInteger.ZERO) != 0) {
@@ -70,7 +38,7 @@ public class BabyJubjubCurve {
         return res;
     }
 
-    static boolean inCurve(Point pointP) {
+    static boolean inCurve(EddsaPoint pointP) {
         FieldElement x2 = pointP.x.square();
         FieldElement y2 = pointP.y.square();
         // check iff a * x**2 + y**2 == 1 + d * x**2 * y**2
@@ -82,7 +50,7 @@ public class BabyJubjubCurve {
         return l.equals(r);
     }
 
-    static Point addPoint(Point pointA, Point pointB) {
+    static EddsaPoint addPoint(EddsaPoint pointA, EddsaPoint pointB) {
         // TODO: optimize performance
         FieldElement one = new FieldElement(BabyJubjubCurve.p, BigInteger.ONE);
         FieldElement x0 = pointA.x;
@@ -99,6 +67,6 @@ public class BabyJubjubCurve {
         FieldElement newY = y0.mul(y1).sub(a.mul(x0).mul(x1)).mul(
                 one.sub(dxxyy).inv());
 
-        return new Point(newX, newY);
+        return new EddsaPoint(newX, newY);
     }
 }
