@@ -346,7 +346,7 @@ public class PoseidonHashTest
     boolean threadSafe = true;
     @Test
     public void checkThreadSafe() throws Exception {
-        int threads = 3;
+        int threads = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
         final CountDownLatch countlatch = new CountDownLatch(threads);
         for (int i = 0; i < threads; i++) {
