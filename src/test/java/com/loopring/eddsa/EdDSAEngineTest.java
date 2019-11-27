@@ -41,6 +41,23 @@ public class EdDSAEngineTest {
                 new BigInteger("339848432477505972274422023312873482243275195068738529496439822141587050935")
         );
     }
+ 
+    @Test
+    public void testEnginePubkeyExport() {
+        EdDSAEngine engine = new EdDSAEngine();
+
+        byte[] privateKey = new BigInteger("1018795972161967035259139852407783214760023844479199194395635687306033280272").toByteArray();
+        EdDSAKeyPair key = engine.generateKeyPair(privateKey);
+
+        FieldElement pkX = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("16416073411975395190673982159862238683910540258193173307942575622314590043376"));
+
+        FieldElement pkY = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("10862070804333336766833470090031140186909883561173798338300378814650286539312"));
+
+        assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyX), pkX);
+        assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyY), pkY);
+>    }
 
     @Test
     public void testImportedKeyPairs() {
