@@ -48,7 +48,6 @@ public interface PoseidonHash {
 
         private final static int byteLength = 32;
         private final static Blake2b.Param param = new Blake2b.Param().setDigestLength(byteLength);
-        private final static Blake2b blake2b = Blake2b.Digest.newInstance(param);
 
         private PoseidonParamsType(BigInteger p, int t, int nRoundsF, int nRoundsP, String seed, int e,
                                    BigInteger[] constants_C, BigInteger[][] constants_M) {
@@ -203,7 +202,7 @@ public interface PoseidonHash {
         static BigInteger H(byte[] input) {
             // hashed = blake2b(data=arg, digest_size=32).digest()
             // return int.from_bytes(hashed, 'little')
-            blake2b.reset();
+            Blake2b blake2b = Blake2b.Digest.newInstance(param);
             blake2b.update(input);
             byte[] hashBuf = blake2b.digest();
             return toBigInteger(hashBuf, byteLength, "little");
