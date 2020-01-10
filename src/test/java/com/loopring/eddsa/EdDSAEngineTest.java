@@ -26,6 +26,23 @@ public class EdDSAEngineTest {
     }
 
     @Test
+    public void testEngineGenerageJsCompatibleKeyPair() {
+        EdDSAEngine engine = new EdDSAEngine();
+        long seed =  "0xE20cF871f1646d8651ee9dC95AAB1d93160b3467Abc!12345".hashCode();
+        String bigIntStr = BigInteger.valueOf(seed).abs().toString(10);
+        String jsLeBigIntStr = engine.encodeJsBigInt(bigIntStr);
+        assertEquals(
+                new String(jsLeBigIntStr),
+                "00000000000000000000001268930117"
+        );
+        EdDSAKeyPair key = engine.generateJsCompatibleKeyPair(jsLeBigIntStr);
+        assertEquals(
+                engine.decode(key.secretKey),
+                new BigInteger("339848432477505972274422023312873482243275195068738529496439822141587050935")
+        );
+    }
+
+    @Test
     public void testImportedKeyPairs() {
         FieldElement sk = new FieldElement(BabyJubjubCurve.subOrder,
                                             new BigInteger("1018795972161967035259139852407783214760023844479199194395635687306033280272"));

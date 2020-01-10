@@ -46,6 +46,14 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
                                 secretKey.toLeBuf());
     }
 
+    public EdDSAKeyPair generateJsCompatibleKeyPair(String jsLeBigIntBuffer) {
+        BigInteger keySeed = decodeJsBigInt(jsLeBigIntBuffer);
+        FieldElement secretKey = new FieldElement(BabyJubjubCurve.subOrder, keySeed);
+        EddsaPoint publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey.v);
+
+        return new EdDSAKeyPair(publicKey.x.toLeBuf(), publicKey.y.toLeBuf(), secretKey.toLeBuf());
+    }
+
     public byte[] sign(byte[] keyBytes, byte[] msg) {
         assert (keyBytes.length == 32);
         byte[] h1 = blake512HashEngine.digest(keyBytes);

@@ -36,4 +36,15 @@ public class BigIntLittleEndianEncodingTest {
             assertEquals(enc.decode(buf), num);
         }
     }
+
+    @Test
+    public void TestStringEncode() {
+        BigIntLittleEndianEncoding enc = BigIntLittleEndianEncoding.newInstance();
+        String jsLeBigIntString = enc.encodeJsBigInt("1268930117");
+        assert (jsLeBigIntString.length() == enc.byteLength());
+        assert (jsLeBigIntString.length() == BabyJubjubCurve.FIELD_SIZE);
+        BigInteger key = enc.decodeJsBigInt(jsLeBigIntString);
+        assertTrue(key.equals(new BigInteger("24964121663296690597301628486727307956934600944495843862298380770677613408304")));
+    }
 }
+
