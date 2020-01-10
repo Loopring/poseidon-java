@@ -46,8 +46,15 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
                                 secretKey.toLeBuf());
     }
 
+    /*
+     * generateJsCompatibleKeyPair generates js compatible key pair, which means use string bytes value
+     * instead of string number.
+     * For example, leBuffer '12' to int is 49 + 50*256, rather than intuitively 1 + 2*256.
+     * See decodeJsLeBuffToBigInt for detail
+     * That to make sure we have unified key pairs between java and js.
+     */
     public EdDSAKeyPair generateJsCompatibleKeyPair(String jsLeBigIntBuffer) {
-        BigInteger keySeed = decodeJsBigInt(jsLeBigIntBuffer);
+        BigInteger keySeed = decodeJsLeBuffToBigInt(jsLeBigIntBuffer);
         FieldElement secretKey = new FieldElement(BabyJubjubCurve.subOrder, keySeed);
         EddsaPoint publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey.v);
 

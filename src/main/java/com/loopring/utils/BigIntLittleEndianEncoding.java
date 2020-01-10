@@ -28,8 +28,8 @@ public class BigIntLittleEndianEncoding {
 
     /*
      * encode a BigInteger to le buffer
-     *     i.e. 01 == 0x01 => [1, 0, ...{32}..., 0]
-     *          17 == 0x12 => [2, 1, ...{32}..., 0]
+     *     i.e. 01  ==  0x01 => [1, 0, ...{32}..., 0]
+     *          257 == 0x101 => [1, 1, ...{32}..., 0]
      */
     public byte[] encode(BigInteger x) {
         assert (!isNegative(x));
@@ -45,6 +45,11 @@ public class BigIntLittleEndianEncoding {
         return out;
     }
 
+    /*
+     * decode a le buffer to a BigInteger
+     *     i.e. [1, 0, ...{32}..., 0] == 0...{32}...01
+     *          [2, 1, ...{32}..., 0] == 0...{32}.0258
+     */
     public BigInteger decode(byte[] in) {
         return toBigInteger(in);
     }
@@ -52,8 +57,8 @@ public class BigIntLittleEndianEncoding {
     /*
      * encode a BigInteger String to JS compatible le buffer String, because JS lib uses
      * this method to format a leBuf and transfers which to bigint.
-     *     i.e. 01 == "01" => String([0, ...{32}..., 0, 1])
-     *          17 == "17" => String([0, ...{32}..., 1, 7])
+     *     i.e. 001 == "001" => String([0, ...{32}..., 0, 1])
+     *          257 == "257" => String([0, ...{32}..., 1, 1])
      */
     public String encodeJsBigInt(String bigIntStr) {
         byte[] in = bigIntStr.getBytes();
@@ -79,7 +84,17 @@ public class BigIntLittleEndianEncoding {
         return new String(out);
     }
 
-    public BigInteger decodeJsBigInt(String jsLeBigIntString) {
+    /*
+     * decode a BigInteger String to JS compatible le buffer String, because JS lib uses
+     * this method to format a leBuf and transfers which to bigint.
+     *  Refer to snarkjs.bigInt.leBuff2Int().
+     * NOTE:
+     *  Convert result of le buffer '123' is 49 + 50*256 + 51*256^2,
+     *                           rather than  1 +  2*256 +  3*256^2.
+     *  This is because js lib adopts such conversion.
+     *  SO, please also NOTE: JsleBuffToBigInt(encodeJsBigInt(a)) != a.
+     */
+    public BigInteger decodeJsLeBuffToBigInt(String jsLeBigIntString) {
         byte[] in = jsLeBigIntString.getBytes();
         BigInteger result = BigInteger.ZERO;
         for (int i = 0; i < in.length; i++) {
