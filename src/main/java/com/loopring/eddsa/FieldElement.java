@@ -1,14 +1,14 @@
 package com.loopring.eddsa;
 
-import com.loopring.utils.BigIntLittleEndianEncoding;
-
 import java.math.BigInteger;
+
+import com.loopring.utils.BigIntLittleEndianEncoding;
 
 public class FieldElement extends BigIntLittleEndianEncoding {
 
-    BigInteger fq; // field prime number
+    public BigInteger fq; // field prime number
 
-    BigInteger v;  // value in this field
+    public BigInteger v;  // value in this field
 
     public FieldElement(BigInteger prime, BigInteger v) {
         super(BabyJubjubCurve.BIT_FIELD_SIZE);

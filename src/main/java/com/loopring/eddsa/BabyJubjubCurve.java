@@ -19,11 +19,11 @@ public class BabyJubjubCurve {
 
     public static BigInteger subOrder = order.shiftRight(3);
 
-    static FieldElement a = new FieldElement(p, new BigInteger("168700"));
+    public static FieldElement a = new FieldElement(p, new BigInteger("168700"));
 
-    static FieldElement d = new FieldElement(p, new BigInteger("168696"));
+    public static FieldElement d = new FieldElement(p, new BigInteger("168696"));
 
-    static EddsaPoint mulPointEscalar(EddsaPoint pointP, BigInteger e) {
+    public static EddsaPoint mulPointEscalar(EddsaPoint pointP, BigInteger e) {
         EddsaPoint res = new EddsaPoint(BigInteger.ZERO, BigInteger.ONE);
         EddsaPoint exp = pointP;
         BigInteger rem = e;
@@ -38,7 +38,7 @@ public class BabyJubjubCurve {
         return res;
     }
 
-    static boolean inCurve(EddsaPoint pointP) {
+    public static boolean inCurve(EddsaPoint pointP) {
         FieldElement x2 = pointP.x.square();
         FieldElement y2 = pointP.y.square();
         // check iff a * x**2 + y**2 == 1 + d * x**2 * y**2
@@ -50,7 +50,7 @@ public class BabyJubjubCurve {
         return l.equals(r);
     }
 
-    static EddsaPoint addPoint(EddsaPoint pointA, EddsaPoint pointB) {
+    public static EddsaPoint addPoint(EddsaPoint pointA, EddsaPoint pointB) {
         // TODO: optimize performance
         FieldElement one = new FieldElement(BabyJubjubCurve.p, BigInteger.ONE);
         FieldElement x0 = pointA.x;

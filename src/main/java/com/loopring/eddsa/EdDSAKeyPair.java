@@ -1,9 +1,9 @@
 package com.loopring.eddsa;
 
 public class EdDSAKeyPair {
-    byte[] publicKeyX;
-    byte[] publicKeyY;
-    byte[] secretKey;
+    public byte[] publicKeyX;
+    public byte[] publicKeyY;
+    public byte[] secretKey;
 
     public EdDSAKeyPair(byte[] x, byte[] y, byte[] secret) {
         assert (x.length == BabyJubjubCurve.FIELD_SIZE);
