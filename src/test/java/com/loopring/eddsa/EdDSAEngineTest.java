@@ -5,6 +5,9 @@ import org.junit.Test;
 //import java.math.BigInteger;
 
 import java.math.BigInteger;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 
@@ -40,6 +43,23 @@ public class EdDSAEngineTest {
                 engine.decode(key.secretKey),
                 new BigInteger("339848432477505972274422023312873482243275195068738529496439822141587050935")
         );
+    }
+ 
+    @Test
+    public void testEnginePubkeyExport() {
+        EdDSAEngine engine = new EdDSAEngine();
+
+        byte[] privateKey = new BigInteger("1018795972161967035259139852407783214760023844479199194395635687306033280272").toByteArray();
+        EdDSAKeyPair key = engine.generateKeyPair(privateKey);
+
+        FieldElement pkX = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("16416073411975395190673982159862238683910540258193173307942575622314590043376"));
+
+        FieldElement pkY = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("10862070804333336766833470090031140186909883561173798338300378814650286539312"));
+
+        assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyX), pkX);
+        assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyY), pkY);
     }
 
     @Test
@@ -925,5 +945,72 @@ public class EdDSAEngineTest {
         };
 
         return jsCrossCheckCases;
+    }
+
+
+    boolean threadSafe = true;
+    @Test
+    public void checkThreadSafe() throws Exception {
+        int threads = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(threads);
+        final CountDownLatch countlatch = new CountDownLatch(threads);
+        for (int i = 0; i < threads; i++) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        JsCrossCheckCase[] jsCrossCheckCases = {
+                                new JsCrossCheckCase(
+                                        "921609149690493977585911696827337054639832942371259033273776686600054492354",
+                                        "1633277735178400563234653379447993111316796169531716763857059889369694811577",
+                                        "14607601239110659652681518725067266632418059892727333259704506695795660425350",
+                                        "862850998800073316534330750238523885957149818334583504973904074726646579162",
+                                        "6381333999317450570098776692282375872545427844988765466237980827394751442446",
+                                        "4039644995428698557522160448236812430634595040850669502019795831604466982380"
+                                ),
+                                new JsCrossCheckCase(
+                                        "1546984317872560897905861849920989661892807261674196863229973892831711965048",
+                                        "14424321502185589434278882419001418716328846507275674283975035237320165999495",
+                                        "19971020842288262313434074305296229080814985456137241648170999511122722660170",
+                                        "144702556753912216936853820660386647124591411619502553398153253612820288282",
+                                        "9359759881892811896919903363499475831579992456907563584073661567930113503232",
+                                        "9018567594197481912805300060611490199869854025505922292924065296556579301959"
+                                ),
+                                new JsCrossCheckCase(
+                                        "34825084566593270944410652641636804970427766562201192525349207085435696160",
+                                        "14941743067274191030228830712456912369187813231769581159076425620076715272038",
+                                        "11718402149090385786926068252753244512621394967655600236962890811546116637659",
+                                        "1553150102645167194552947528473979676574639243024799729010164356827689748823",
+                                        "20240598153222766540251626212656248359187725480318060903238628519560300991906",
+                                        "21731264169328620141291653110903899451077996687977922701123014258953722290747"
+                                ),
+                        };
+
+                        EdDSAEngine engine = new EdDSAEngine();
+                        int i = 0;
+                        for (JsCrossCheckCase c : jsCrossCheckCases) {
+                            FieldElement Rx = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.Rx));
+                            FieldElement Ry = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.Ry));
+                            FieldElement sign = new FieldElement(BabyJubjubCurve.subOrder, new BigInteger(c.ss));
+                            FieldElement pkX = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkX));
+                            FieldElement pkY = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkY));
+
+                            EdDSASignature signature = new EdDSASignature(new EddsaPoint(Rx, Ry), sign);
+
+                            BigInteger msgInt = new BigInteger(c.msg);
+
+                            threadSafe &= engine.verify(engine.encode(msgInt), signature.toByteArray(), new EddsaPoint(pkX, pkY));
+                            assertTrue("Test " + i + " Failed", engine.verify(engine.encode(msgInt), signature.toByteArray(), new EddsaPoint(pkX, pkY)));
+                            i++;
+                        }
+                    } finally {
+                        countlatch.countDown();
+                    }
+                }
+            });
+        }
+
+        countlatch.await();
+        assertTrue(threadSafe);
     }
 }

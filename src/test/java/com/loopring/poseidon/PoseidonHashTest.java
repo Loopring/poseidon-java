@@ -1,13 +1,15 @@
 package com.loopring.poseidon;
 
 import static com.loopring.poseidon.PoseidonHash.Field.SNARK_SCALAR_FIELD;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 class Case {
     String name;
@@ -189,7 +191,7 @@ public class PoseidonHashTest
         Case c = new Case("Chain hash [0, 1, 2, 3, 4]", "", inputs);
 
 
-        assertEquals(new String[] {
+        assertArrayEquals(new String[] {
                 "15864913677115162934064607149194869253350241780874175050452413048185040098763",
                 "7319943059005658379315734218739496583847470886995543107485878740768447351279",
                 "15850557525889711069621591486692886703107356190007608399927534033240030180242",
@@ -339,6 +341,51 @@ public class PoseidonHashTest
         for (Case c : cases) {
             assertEquals(c.name, c.expected, c.testPoseidonHash(new BigInteger(1, c.bytesInputs)));
         }
+    }
+
+    boolean threadSafe = true;
+    @Test
+    public void checkThreadSafe() throws Exception {
+        int threads = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(threads);
+        final CountDownLatch countlatch = new CountDownLatch(threads);
+        for (int i = 0; i < threads; i++) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        PoseidonHash.PoseidonParamsType userParams = PoseidonHash.PoseidonParamsType.newInstance(
+                                SNARK_SCALAR_FIELD, 10, 8, 57, "poseidon",
+                                5, null, null, 126);
+                        Case.setNewParams(userParams);
+                        Case[] cases = new Case[]{
+                                new Case("0",
+                                        "0x27476133378d92972301ea9ace2f75bbf9e9fb9abbed4b24c5c90b218e164444",
+                                        new BigInteger[]{new BigInteger(new byte[]{0})}),
+                                new Case("1",
+                                        "0x1052f72d52e425bf02e1a62e9f89eba8ba522af8084f875ffeab6a2f69ba2614",
+                                        new BigInteger[]{new BigInteger(new byte[]{1})}),
+                                new Case("2",
+                                        "0x1364b2857bf5b8fbe6f62b71cf3b619daa1e20cbea53c0121a8bf2d98f82aecb",
+                                        new BigInteger[]{new BigInteger(new byte[]{2})}),
+                                new Case("3",
+                                        "0x15375c4785401643f109c7b5438bfa966d3efd06f8e5b0148b8a3e3fcba2f652",
+                                        new BigInteger[]{new BigInteger(new byte[]{3})})
+                        };
+
+                        for (Case c : cases) {
+                            threadSafe &= c.expected.equals(c.testPoseidonHash(c.numInputs));
+                            assertEquals(c.expected, c.testPoseidonHash(c.numInputs));
+                        }
+                    } finally {
+                        countlatch.countDown();
+                    }
+                }
+            });
+        }
+
+        countlatch.await();
+        assertTrue(threadSafe);
     }
 }
 
