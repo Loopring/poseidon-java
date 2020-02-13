@@ -60,7 +60,7 @@ public class EdDSAEngineTest {
 
         assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyX), pkX);
         assertEquals(new FieldElement(BabyJubjubCurve.p).fromLeBuf(key.publicKeyY), pkY);
->    }
+    }
 
     @Test
     public void testImportedKeyPairs() {
