@@ -46,5 +46,27 @@ public class BigIntLittleEndianEncodingTest {
         BigInteger key = enc.decodeJsLeBuffToBigInt(jsLeBigIntString);
         assertTrue(key.equals(new BigInteger("24964121663296690597301628486727307956934600944495843862298380770677613408304")));
     }
+
+    @Test
+    public void TestByteDecode() {
+        BigIntLittleEndianEncoding enc = BigIntLittleEndianEncoding.newInstance();
+        // bigInt2e256m1 = 2**256 - 1 == 0xFF..<-255bits->..FF
+        BigInteger bigInt2e256m1 = new BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        byte[] refBuf1 = new byte[]{
+                -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1};
+        BigInteger key = enc.decode(refBuf1);
+        assertTrue(key.equals(bigInt2e256m1));
+
+        byte[] refBuf2 = new byte[]{
+                -3, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, -1, -1, -1, -1};
+        key = enc.decode(refBuf2);
+        assertTrue(key.equals(bigInt2e256m1.subtract(BigInteger.valueOf(2))));
+    }
 }
 
