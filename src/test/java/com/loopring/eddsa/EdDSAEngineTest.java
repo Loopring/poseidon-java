@@ -28,20 +28,29 @@ public class EdDSAEngineTest {
         assertTrue(engine.verify(msg, sign, key.publicKey()));
     }
 
+    public byte[] toByteArray(String hexString) {
+        hexString = hexString.toLowerCase();
+        final byte[] byteArray = new byte[hexString.length() >> 1];
+        int index = 0;
+        for (int i = 0; i < hexString.length(); i++) {
+            if (index  > hexString.length() - 1)
+                return byteArray;
+            byte highDit = (byte) (Character.digit(hexString.charAt(index), 16) & 0xFF);
+            byte lowDit = (byte) (Character.digit(hexString.charAt(index + 1), 16) & 0xFF);
+            byteArray[i] = (byte) (highDit << 4 | lowDit);
+            index += 2;
+        }
+        return byteArray;
+    }
+
     @Test
     public void testEngineGenerageJsCompatibleKeyPair() {
         EdDSAEngine engine = new EdDSAEngine();
-        long seed =  "0xE20cF871f1646d8651ee9dC95AAB1d93160b3467Abc!12345".hashCode();
-        String bigIntStr = BigInteger.valueOf(seed).abs().toString(10);
-        String jsLeBigIntStr = engine.encodeJsBigInt(bigIntStr);
-        assertEquals(
-                new String(jsLeBigIntStr),
-                "00000000000000000000001268930117"
-        );
-        EdDSAKeyPair key = engine.generateJsCompatibleKeyPair(jsLeBigIntStr);
+        byte[] seed = toByteArray("c747d8dd5a4537b268163201aa4a11a7efd383738328220b90de520eb9220d43");
+        EdDSAKeyPair key = engine.generateJsCompatibleKeyPair(seed);
         assertEquals(
                 engine.decode(key.secretKey),
-                new BigInteger("339848432477505972274422023312873482243275195068738529496439822141587050935")
+                new BigInteger("231835566616350459951980150888472168779736240292314028711195551776797072236")
         );
     }
  

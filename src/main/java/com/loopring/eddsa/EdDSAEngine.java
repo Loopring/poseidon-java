@@ -53,8 +53,8 @@ public class EdDSAEngine extends BigIntLittleEndianEncoding {
      * See decodeJsLeBuffToBigInt for detail
      * That to make sure we have unified key pairs between java and js.
      */
-    public EdDSAKeyPair generateJsCompatibleKeyPair(String jsLeBigIntBuffer) {
-        BigInteger keySeed = decodeJsLeBuffToBigInt(jsLeBigIntBuffer);
+    public EdDSAKeyPair generateJsCompatibleKeyPair(byte[] seed) {
+        BigInteger keySeed = decode(seed);
         FieldElement secretKey = new FieldElement(BabyJubjubCurve.subOrder, keySeed);
         EddsaPoint publicKey = BabyJubjubCurve.mulPointEscalar(BabyJubjubCurve.base8, secretKey.v);
 
