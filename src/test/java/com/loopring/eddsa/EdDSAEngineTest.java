@@ -126,6 +126,30 @@ public class EdDSAEngineTest {
     }
 
     @Test
+    public void testSingleReferenceSignedMsg() {
+        JsCrossCheckCase c = new JsCrossCheckCase(
+            "6222324080357169519549869458921405616461890098492293570038043369873535758175",
+            "2234599733150551541275535480980537316895615271866516320285283091527891858899",
+            "477351541828787851655316717541476919303219038966706131241502112737059534328",
+            "1764551961516417674439200413922765666551692064726248608990877092854317530341",
+            "14897113754240334390425274246975731522253201372107654564994625379200830453570",
+            "18009123090444292016584648371577164110364654732778507350389476992759270498286"
+        );
+
+        EdDSAEngine engine = new EdDSAEngine();
+        FieldElement Rx = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.Rx));
+        FieldElement Ry = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.Ry));
+        FieldElement sign = new FieldElement(BabyJubjubCurve.subOrder, new BigInteger(c.ss));
+        FieldElement pkX = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkX));
+        FieldElement pkY = new FieldElement(BabyJubjubCurve.p, new BigInteger(c.pkY));
+
+        EdDSASignature signature = new EdDSASignature(new EddsaPoint(Rx, Ry), sign);
+
+        BigInteger msgInt = new BigInteger(c.msg);
+        assertTrue("Test " + c + " Failed", engine.verify(engine.encode(msgInt), signature.toByteArray(), new EddsaPoint(pkX, pkY)));
+    }
+
+    @Test
     public void testReferenceSignedMsg() {
         JsCrossCheckCase[] jsCrossCheckCases = generateXCheckCases();
 
