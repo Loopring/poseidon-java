@@ -108,6 +108,41 @@ public class EdDSAEngineTest {
         assertTrue(engine.verify(msg, signature.toByteArray(), new EddsaPoint(pkX, pkY)));
     }
 
+    @Test
+    public void testNegativeHash() {
+        FieldElement sk = new FieldElement(BabyJubjubCurve.subOrder,
+                new BigInteger("1018795972161967035259139852407783214760023844479199194395635687306033280272"));
+
+        FieldElement pkX = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("16416073411975395190673982159862238683910540258193173307942575622314590043376"));
+
+        FieldElement pkY = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("10862070804333336766833470090031140186909883561173798338300378814650286539312"));
+
+        assertTrue(BabyJubjubCurve.inCurve(new EddsaPoint(pkX, pkY)));
+
+        EdDSAEngine engine = new EdDSAEngine();
+        byte[] msg = toByteArray("ffd777d9dafa430f0d4874f81e235b9a3920dc6ef80b8a3abc203ac972e3ab28");
+        byte[] encodeMsg = engine.encode(new BigInteger(1, msg).mod(BabyJubjubCurve.p));
+        EdDSASignature selfSign = new EdDSASignature(engine.sign(sk.toLeBuf(), encodeMsg));
+//        System.out.println("Self sign x =" + selfSign.getPointR().x.v.toString(10));
+//        System.out.println("Self sign y =" + selfSign.getPointR().y.v.toString(10));
+//        System.out.println("Self sign s =" + selfSign.getS().v.toString(10));
+
+        FieldElement Rx = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("8264668084659402761470844898544842891778917639158192078954917645824546383185"));
+
+        FieldElement Ry = new FieldElement(BabyJubjubCurve.p,
+                new BigInteger("6482785861705343172722635007495768556185726059633031162923582641346786419128"));
+
+        FieldElement sign = new FieldElement(BabyJubjubCurve.subOrder,
+                new BigInteger("1265849246133648268969927769818395673697848093668943581162070601255659856017"));
+
+        EdDSASignature signature = new EdDSASignature(new EddsaPoint(Rx, Ry), sign);
+
+        assertTrue(engine.verify(encodeMsg, signature.toByteArray(), new EddsaPoint(pkX, pkY)));
+    }
+
     class JsCrossCheckCase {
         String msg;
         String Rx;
