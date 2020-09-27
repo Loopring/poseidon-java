@@ -33,4 +33,23 @@ final public class EddsaPoint {
         this.x = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(x);
         this.y = new FieldElement(BabyJubjubCurve.p, BigInteger.ZERO).fromLeBuf(y);
     }
+
+    /*
+    def neg(self):
+		"""
+		Twisted Edwards Curves, BBJLP-2008, section 2 pg 2
+		"""
+		return Point(-self.x, self.y)
+     */
+    public EddsaPoint neg() {
+        return new EddsaPoint(this.x.v.negate(), this.y.v);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (!(obj instanceof EddsaPoint)) return false;
+        EddsaPoint pt = (EddsaPoint)obj;
+        return x.equals(pt.x) && y.equals(pt.y);
+    }
 }
