@@ -39,10 +39,19 @@ public class FieldElement extends BigIntLittleEndianEncoding {
         return new FieldElement(fq, v.pow(2).mod(fq));
     }
 
+    public FieldElement sqrt() {
+        //TODO: implement sqrt
+        throw new Error("FieldElement sqrt() NOT implemented");
+    }
+
     public FieldElement inv()
     {
         return new FieldElement(fq, v.modInverse(fq));
     }
+
+    public FieldElement neg() {return new FieldElement(fq, v.negate());}
+
+    public boolean isNegative() {return (v.compareTo(neg().v) < 0);}
 
     public FieldElement fromLeBuf(byte[] leBuf) {
         BigInteger bi = this.decode(leBuf);

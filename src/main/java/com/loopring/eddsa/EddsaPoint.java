@@ -45,6 +45,20 @@ final public class EddsaPoint {
         return new EddsaPoint(this.x.v.negate(), this.y.v);
     }
 
+    public byte[] compress() {
+        /*
+            From: https://ed25519.cr.yp.to/eddsa-20150704.pdf
+            TODO: No decompress.
+         */
+        FieldElement x = this.x;
+        FieldElement y = this.y;
+        // return int.to_bytes(y | ((x.v.testBit(1)) << 255), 32, "little")
+        if (x.v.testBit(0)) {
+            y = new FieldElement(y.fq, y.v.setBit(255));
+        }
+        return y.toLeBuf();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) return false;

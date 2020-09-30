@@ -150,4 +150,35 @@ public class BabyJubjubCurve {
 
         return new EddsaPoint(newX, newY);
     }
+
+
+    //TODO: support from x/y
+//    public static EddsaPoint fromX(FieldElement x) {
+//        assert x.fq == p;
+//        FieldElement y = x;
+//        return new EddsaPoint(x, y);
+//    }
+//
+//    public static EddsaPoint fromY(FieldElement y, boolean signedX) {
+//        /*
+//    		x^2 = (y^2 - 1) / (d * y^2 - a)
+//         */
+//        assert y.fq == p;
+//        FieldElement ysq = y.mul(y);
+//        FieldElement lhs = ysq.sub(new FieldElement(p, BigInteger.ONE));
+//        FieldElement rhs = d.mul(ysq).sub(a);
+//        FieldElement xsq = lhs.mul(rhs.inv());
+//        FieldElement x = xsq.sqrt(); // number theory
+//        if (signedX) {
+//            if (x.v.testBit(1) != signedX) {
+//                x = x.neg();
+//            }
+//        } else {
+//            if (x.isNegative()) {
+//                x = x.neg();
+//            }
+//        }
+//
+//        return new EddsaPoint(x, y);
+//    }
 }
