@@ -4,6 +4,8 @@ import com.loopring.eddsa.BabyJubjubCurve;
 
 import java.math.BigInteger;
 
+import static java.lang.Math.min;
+
 public class BigIntLittleEndianEncoding {
 
     private static int DEFAULT_BIT_LENGTH = BabyJubjubCurve.BIT_FIELD_SIZE;
@@ -36,7 +38,9 @@ public class BigIntLittleEndianEncoding {
 
         byte[] in = x.toByteArray();
         byte[] out = new byte[byteLength];
-        for (int i = 0; i < in.length; i++) {
+        assert(in.length <= byteLength || in.length == byteLength + 1);
+        int outputLen = min(byteLength, in.length);
+        for (int i = 0; i < outputLen; i++) {
             out[i] = in[in.length-1-i];
         }
         for (int i = in.length; i < out.length; i++) {
