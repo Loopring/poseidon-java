@@ -51,7 +51,7 @@ public class FieldElement extends BigIntLittleEndianEncoding {
 
     public FieldElement neg() {return new FieldElement(fq, v.negate());}
 
-    public boolean isNegative() {return (v.compareTo(neg().v) < 0);}
+    public boolean isNegative() {return (v.compareTo(neg().v) > 0);}
 
     public FieldElement fromLeBuf(byte[] leBuf) {
         BigInteger bi = this.decode(leBuf);

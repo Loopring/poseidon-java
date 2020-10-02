@@ -52,11 +52,11 @@ final public class EddsaPoint {
          */
         FieldElement x = this.x;
         FieldElement y = this.y;
-        // return int.to_bytes(y | ((x.v.testBit(1)) << 255), 32, "little")
-        if (x.v.testBit(0)) {
-            y = new FieldElement(y.fq, y.v.setBit(255));
+        byte[] output = y.toLeBuf();
+        if (x.isNegative()) {
+            output[31] |= 0x80;
         }
-        return y.toLeBuf();
+        return output;
     }
 
     @Override
